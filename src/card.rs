@@ -8,7 +8,8 @@ pub struct CardPlugin;
 impl Plugin for CardPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<NextCardID>()
-            .add_systems(Startup, setup);
+            .add_systems(Startup, setup)
+            .add_systems(Update, move_card);
     }
 }
 
@@ -29,14 +30,26 @@ fn setup(
 struct NextCardID(u16);
 
 #[derive(Component, Debug)]
-struct Card {
+pub struct Card {
     id: u16,
+}
+
+impl Card {
+    pub fn get_id(&self) -> u16 {
+        self.id
+    }
+}
+
+#[derive(Component, Debug)]
+pub struct Target {
+    pub posn: Vec2
 }
 
 #[derive(Bundle)]
 struct CardBundle {
     card: Card,
     mesh: MaterialMesh2dBundle<ColorMaterial>,
+    target: Target,
 }
 
 const CARD_WIDTH: f32 = 63.;
@@ -63,9 +76,31 @@ fn spawn_card(
             material: mat,
             transform: Transform::from_translation(posn.extend(0.)),
             ..default()
-        }
+        },
+        target: Target {
+            posn: posn
+        },
     });
 
     // increment the id for uniqueness
     next_card_id.0 = next_card_id.0 + 1;
+}
+
+
+fn interpolate(from: Vec2, to: Vec2) -> Vec2 {
+    let interpolation_factor = 0.1;
+    let x = from.x + (to.x - from.x) * interpolation_factor;
+    let y = from.y + (to.y - from.y) * interpolation_factor;
+    Vec2::new(x, y)
+}
+
+fn move_card(
+    mut query: Query<(&mut Transform, &Target), With<Card>>,
+) {
+    for (mut transform, target) in query.iter_mut() {
+        transform.translation = interpolate(
+            transform.translation.truncate(),
+            target.posn
+        ).extend(transform.translation.z)
+    }
 }
