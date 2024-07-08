@@ -18,8 +18,15 @@ fn setup(mut commands: Commands) {
 }
 
 #[derive(Resource, Debug, Default)]
-struct Mouse {
+pub struct Mouse {
     posn: Vec2,
+
+}
+
+impl Mouse {
+    pub fn get_posn(&self) -> Vec2 {
+        self.posn
+    }
 }
 
 #[derive(Component)]

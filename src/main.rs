@@ -3,10 +3,12 @@ use bevy::{
 };
 
 mod card;
+mod card_drag;
 mod mouse;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, mouse::MousePlugin, card::CardPlugin))
+        .add_plugins(DefaultPlugins)
+        .add_plugins((mouse::MousePlugin, card::CardPlugin, card_drag::CardDragPlugin))
         .run();
 }
